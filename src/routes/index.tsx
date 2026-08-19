@@ -80,10 +80,11 @@ function Index() {
 
     if (details.notes.trim()) message += `\n*Notes:* ${details.notes.trim()}`;
 
-    try {
-      window.top.location.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-    } catch {
-      window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, "_blank");
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+    if (window.top) {
+      window.top.location.href = url;
+    } else {
+      window.open(url, "_blank");
     }
     setCart({});
     setCartOpen(false);
