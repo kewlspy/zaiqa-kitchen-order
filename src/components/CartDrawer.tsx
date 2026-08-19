@@ -45,7 +45,9 @@ export function CartDrawer({
   onSubmit,
 }: Props) {
   const [showForm, setShowForm] = useState(false);
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [touched, setTouched] = useState<{ name?: boolean; phone?: boolean; address?: boolean }>(
+    {},
+  );
   const [details, setDetails] = useState<CheckoutDetails>({
     name: "",
     phone: "",
