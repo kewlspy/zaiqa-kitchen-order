@@ -80,7 +80,11 @@ function Index() {
 
     if (details.notes.trim()) message += `\n*Notes:* ${details.notes.trim()}`;
 
-    window.location.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+    try {
+      window.top.location.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+    } catch {
+      window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, "_blank");
+    }
     setCart({});
     setCartOpen(false);
     toast.success("Order sent on WhatsApp. Please press send in WhatsApp to confirm.");
