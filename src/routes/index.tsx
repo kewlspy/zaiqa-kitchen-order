@@ -80,7 +80,12 @@ function Index() {
 
     if (details.notes.trim()) message += `\n*Notes:* ${details.notes.trim()}`;
 
-    window.location.href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+    if (window.top) {
+      window.top.location.href = url;
+    } else {
+      window.open(url, "_blank");
+    }
     setCart({});
     setCartOpen(false);
     toast.success("Order sent on WhatsApp. Please press send in WhatsApp to confirm.");
