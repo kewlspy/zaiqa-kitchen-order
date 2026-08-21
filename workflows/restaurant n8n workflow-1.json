@@ -1,0 +1,854 @@
+{
+  "name": "1 â€” Zaiqa Order Agent (Chat, OpenAI embeddings)",
+  "nodes": [
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {
+          "queryName": "match_documents"
+        }
+      },
+      "id": "21b41666-9725-457d-b417-f90dae9f0f3d",
+      "name": "Supabase Vector Store",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.1,
+      "position": [
+        2576,
+        848
+      ],
+      "notesInFlow": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+          "name": "Supabase account 2"
+        }
+      },
+      "notes": "Table MUST be 'documents' - the node ignores custom names."
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "103b1e19-c2a5-4194-a588-6e9c187ee150",
+      "name": "Embeddings OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2544,
+        1072
+      ],
+      "notesInFlow": true,
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI account"
+        }
+      },
+      "notes": "1536 dims. Needs a funded OpenAI account (card + top-up) - not the student-facing default. See INSTRUCTOR-MANUAL.md."
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.content }}",
+        "textSplittingMode": "custom",
+        "options": {}
+      },
+      "id": "7c16cb84-c237-4cf4-ad9e-ad6dc08c6a8b",
+      "name": "Default Data Loader",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        2704,
+        1072
+      ],
+      "notesInFlow": true,
+      "notes": "textSplittingMode MUST be 'custom' or the Text Splitter node below has nowhere to plug in and sits disconnected on the canvas."
+    },
+    {
+      "parameters": {
+        "chunkSize": 900,
+        "chunkOverlap": 150,
+        "options": {}
+      },
+      "id": "77d69e12-f067-48c6-b844-491ac755fa5a",
+      "name": "Recursive Character Text Splitter",
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        2752,
+        1248
+      ],
+      "notesInFlow": true,
+      "notes": "900/150 keeps each menu section whole so a price never gets split from its item."
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "f0292c2a-44e3-402f-906f-ecede4b7813e",
+      "name": "Embeddings OpenAI1",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2432,
+        2640
+      ],
+      "notesInFlow": true,
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI account"
+        }
+      },
+      "notes": "1536 dims. Needs a funded OpenAI account (card + top-up) - not the student-facing default. See INSTRUCTOR-MANUAL.md."
+    },
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ],
+        "options": {}
+      },
+      "id": "190dba36-264a-4365-a763-c61261d8cb1e",
+      "name": "WhatsApp Trigger",
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [
+        1872,
+        1984
+      ],
+      "webhookId": "REDACTED_WEBHOOK_ID_1",
+      "credentials": {
+        "whatsAppTriggerApi": {
+          "id": "YOUR_WHATSAPP_TRIGGER_CREDENTIAL_ID",
+          "name": "WhatsApp OAuth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "YOUR_WHATSAPP_PHONE_NUMBER_ID",
+        "recipientPhoneNumber": "={{ $('WhatsApp Trigger').item.json.messages[0].from }}",
+        "textBody": "={{ $('AI Agent1').item.json.output.reply }}",
+        "additionalFields": {}
+      },
+      "id": "a8c1e817-7409-4642-8d76-7ec88191c950",
+      "name": "Send â€” Order Confirmed",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        3344,
+        2112
+      ],
+      "webhookId": "REDACTED_WEBHOOK_ID_2",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "YOUR_WHATSAPP_CREDENTIAL_ID",
+          "name": "WhatsApp account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "YOUR_WHATSAPP_PHONE_NUMBER_ID",
+        "recipientPhoneNumber": "={{ $('WhatsApp Trigger').item.json.messages[0].from }}",
+        "textBody": "={{ $json.output.reply }}",
+        "additionalFields": {}
+      },
+      "id": "79528328-d1d7-4658-b004-ef5d20acb8ba",
+      "name": "Send â€” Still Chatting",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        2960,
+        2400
+      ],
+      "webhookId": "REDACTED_WEBHOOK_ID_3",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "YOUR_WHATSAPP_CREDENTIAL_ID",
+          "name": "WhatsApp account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.messages[0].text.body }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "ROLE\nYou are the order-taking assistant for Zaiqa Kitchen, a home-style food delivery\nkitchen in Karachi. You talk to customers on WhatsApp. You are warm, brief and\nefficient â€” a good counter person, not a chatbot. You never write paragraphs.\n\nTOOL â€” THIS IS NOT OPTIONAL\nYou have a tool called `menu_knowledge`. It holds the real menu: item names,\nexact prices, deals, delivery charges, timings, delivery areas, spice levels and\nwhat is inside each dish.\n\n- You do NOT know the menu from memory. Call `menu_knowledge` before stating any\n  item name, price, deal, delivery charge, timing or ingredient.\n- Never invent an item. Never invent a price. Never guess a delivery charge.\n- If `menu_knowledge` returns nothing useful, say you'll check with the kitchen\n  and ask the customer to hold. Do not fill the gap with a guess.\n\nLANGUAGE\nUnderstand and reply in whatever the customer uses â€” English, Urdu, or Roman\nUrdu. Mirror them. If they write \"biryani kitne ki hai\", reply in Roman Urdu.\nCommon phrases you will see:\n  \"menu bhejo\" / \"kya kya hai\"          = send the menu\n  \"kitne ki hai\" / \"price kya hai\"      = asking a price\n  \"order karna hai\" / \"mangwana hai\"    = wants to order\n  \"confirm\" / \"haan\" / \"ji\" / \"theek hai\" = yes\n  \"cancel karo\" / \"rehne do\"            = cancel\n\n=== THE TWO WAYS A CONVERSATION STARTS ===\n\nPATH A â€” A PRE-FILLED ORDER FROM THE WEBSITE\nThe customer may arrive with a message that already looks like this:\n\n  *NEW ORDER â€” Zaiqa Kitchen*\n  *Items*\n  2 x Chicken Biryani â€” Rs 900\n  ...\n  *Total: Rs 1250*\n  *Name:* ... *Phone:* ... *Address:* ... *Payment:* ...\n\nThey built this cart on the website and it arrived complete. Do not start over\nand do not re-ask for anything already in that message. Instead:\n  1. Read the items, name, address, payment method and total straight out of it.\n  2. Verify the prices and the delivery charge against `menu_knowledge`. If the\n     website total is wrong, say so politely and give the corrected total.\n  3. Read the order back in one short summary and ask for a yes.\n  4. On yes, confirm the order.\n\nPATH B â€” A FREE CONVERSATION\n\"Assalam o Alaikum, menu bhej dein\". Now you take the order yourself:\n  1. Greet in one line. Call `menu_knowledge` and send a short, scannable menu â€”\n     categories with a few items and prices, not the whole thing pasted raw.\n  2. Take the items. Confirm each addition with a running total.\n  3. When they say they are done, collect in this order, one question at a\n     time â€” never all at once:\n       a. Name\n       b. Delivery address (ask for the area too â€” it decides the charge)\n       c. Payment method: Cash on Delivery or Bank Transfer\n  4. Read the whole order back with the itemised total.\n  5. Ask for a yes.\n  6. On yes, confirm the order.\n\n=== ARITHMETIC ===\nYou do the maths. Never ask the customer to add anything up.\n  line_total  = qty x unit_price\n  subtotal    = sum of all line totals\n  delivery_fee= from `menu_knowledge` (Rs 150, or Rs 0 when subtotal >= 1500)\n  total       = subtotal + delivery_fee\nShow your working in the `note` field so a human can catch you.\n\n=== WHEN AN ORDER IS CONFIRMED â€” READ THIS TWICE ===\nSet `status` to \"order_confirmed\" ONLY when ALL of these are true:\n  - There is at least one item, with a quantity and a price.\n  - You have a customer name.\n  - You have a delivery address.\n  - You have a payment method.\n  - You read the full order and the total back to the customer, and they\n    replied with a clear yes.\n\nIf ANY of those is missing, `status` stays \"chatting\" and you ask for the\nmissing piece. Confirming early writes a broken order into the kitchen's system.\nNever set \"order_confirmed\" on the same message where you first read the order\nback â€” the customer has not answered yet.\n\nOnce you have confirmed an order, treat anything further as a NEW order and\nstart again from an empty cart.\n\n=== CANCELLING AND CHANGING ===\nBefore confirmation the customer can add, remove or change anything. Update the\nrunning total and read it back. If they cancel, empty the cart, reply kindly,\nand keep `status` as \"chatting\".\n\n=== IF YOU DO NOT UNDERSTAND ===\nSay so plainly in one line and offer the two things you can do: send the menu,\nor take an order. Never guess an item, a quantity or an address.\n\n=== OUTPUT FORMAT ===\nReply with JSON only. No commentary, no markdown, no code fences.\n\n{\n  \"reply\": \"the exact WhatsApp message to send back to the customer\",\n  \"status\": \"chatting | order_confirmed | cancelled\",\n  \"order\": {\n    \"customer_name\": \"\",\n    \"phone\": \"\",\n    \"address\": \"\",\n    \"items\": [\n      { \"name\": \"\", \"qty\": 0, \"unit_price\": 0, \"line_total\": 0 }\n    ],\n    \"subtotal\": 0,\n    \"delivery_fee\": 0,\n    \"total\": 0,\n    \"payment_method\": \"\",\n    \"note\": \"\"\n  }\n}\n\nRules for the output:\n- `reply` is the ONLY thing the customer sees. Write it as a real WhatsApp\n  message: short lines, an emoji or two, no headings, no markdown tables.\n- Keep the `order` object filled in with whatever you know so far on EVERY turn,\n  even while `status` is \"chatting\". Use \"\" and 0 for what you don't know yet.\n- `note` is one line showing your arithmetic, e.g.\n  \"2 x 450 = 900, +200 lassi = 1100, +150 delivery = 1250\".\n- `items[].name` must be copied exactly from `menu_knowledge`. Never shorten it,\n  never change the spelling. The kitchen's system matches on this string."
+        }
+      },
+      "id": "5a0a6fba-76ee-4be1-bd95-80196755b835",
+      "name": "AI Agent1",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        2224,
+        2144
+      ]
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.sessionId }}||{{ $json.contacts[0].wa_id }}",
+        "contextWindowLength": 12
+      },
+      "id": "d1ab7f44-be41-414c-9b67-46e9913d4f08",
+      "name": "Simple Memory1",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        2176,
+        2416
+      ],
+      "notesInFlow": true,
+      "notes": "The session key is why two customers don't share a cart."
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "menu_knowledge",
+        "toolDescription": "The official Zaiqa Kitchen menu and policies. Search this before answering anything about food. Contains: every item name with its exact price in rupees, what is in each dish, spice levels, portion sizes, deal combos, delivery charges and the free-delivery threshold, delivery areas, opening hours, and payment methods. Use it whenever the customer asks what is available, asks a price, asks what is in something, asks about delivery cost or timing, or names an item you want to price. Search with the customer's own words, for example \"biryani price\" or \"delivery charge DHA\" or \"what is in the zinger\".",
+        "tableName": {
+          "__rl": true,
+          "value": "rpc/match_documents",
+          "mode": "list",
+          "cachedResultName": "rpc/match_documents"
+        },
+        "options": {
+          "queryName": "match_documents"
+        }
+      },
+      "id": "b4470a05-13f3-43d1-8c14-1cf1da654f62",
+      "name": "menu_knowledge1",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.1,
+      "position": [
+        2304,
+        2432
+      ],
+      "notesInFlow": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+          "name": "Supabase account 2"
+        }
+      },
+      "notes": "The Description field is a prompt FOR THE AI. Leave it vague and the agent stops calling the tool."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.output.status }}",
+              "rightValue": "order_confirmed",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "7a0858c9-1c09-4f33-b2b6-4f3792b872e0",
+      "name": "Order confirmed?1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2592,
+        2144
+      ],
+      "notesInFlow": true,
+      "notes": "The entire business logic. One string comparison."
+    },
+    {
+      "parameters": {
+        "tableId": "orders",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "channel",
+              "fieldValue": "whatsapp"
+            },
+            {
+              "fieldId": "customer_name",
+              "fieldValue": "={{ $json.output.order.customer_name }}"
+            },
+            {
+              "fieldId": "phone",
+              "fieldValue": "={{ $json.output.order.phone }}"
+            },
+            {
+              "fieldId": "address",
+              "fieldValue": "={{ $json.output.order.address }}"
+            },
+            {
+              "fieldId": "items",
+              "fieldValue": "={{ $json.output.order.items.map(item => \n  `${item.name} | Qty: ${item.qty} | Unit Price: ${item.unit_price} | Total: ${item.line_total}`\n).join('\\n') }}\n"
+            },
+            {
+              "fieldId": "subtotal",
+              "fieldValue": "={{ $json.output.order.subtotal }}"
+            },
+            {
+              "fieldId": "delivery_fee",
+              "fieldValue": "={{ $json.output.order.delivery_fee }}"
+            },
+            {
+              "fieldId": "total",
+              "fieldValue": "={{ $json.output.order.total }}"
+            },
+            {
+              "fieldId": "payment_method",
+              "fieldValue": "={{ $json.output.order.payment_method }}"
+            },
+            {
+              "fieldId": "agent_note",
+              "fieldValue": "={{ $json.output.order.note }}"
+            }
+          ]
+        }
+      },
+      "id": "7d308418-ac92-46d8-a577-f5592e5fdbf1",
+      "name": "Save to Supabase1",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2832,
+        2016
+      ],
+      "notesInFlow": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+          "name": "Supabase account 2"
+        }
+      },
+      "notes": "items must be JSON.stringify'd - a raw array fails on the jsonb column."
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Channel",
+              "displayName": "Channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Customer Name",
+              "displayName": "Customer Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Address",
+              "displayName": "Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Items",
+              "displayName": "Items",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Subtotal",
+              "displayName": "Subtotal",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Delivery",
+              "displayName": "Delivery",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Total",
+              "displayName": "Total",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Payment",
+              "displayName": "Payment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Agent Note",
+              "displayName": "Agent Note",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "45487892-4a59-4f47-958a-5dba78de9753",
+      "name": "Append to Sheet1",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        3040,
+        2016
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_GOOGLE_SHEETS_CREDENTIAL_ID",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Data Feed into RAG via Google doc",
+        "height": 720,
+        "width": 1344,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1824,
+        768
+      ],
+      "typeVersion": 1,
+      "id": "77827b4a-61c4-4fc6-b7f3-a37df3f2cb8d",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "responseFormat": "text"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1968,
+        2432
+      ],
+      "id": "8fea04e6-1a1c-4a90-89e5-d948491732d2",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "N8N AI Agent and Automation for restaurant via chat and whatsapp",
+        "height": 1072,
+        "width": 1792,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1744,
+        1808
+      ],
+      "typeVersion": 1,
+      "id": "8b789460-7baa-4872-bd4c-5d2dbb72e9bc",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "documentURL": "YOUR_GOOGLE_DOC_ID"
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        2336,
+        848
+      ],
+      "id": "cb4fd4a5-6b15-4228-8bfc-85a0aa2494a7",
+      "name": "Get a document",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "YOUR_GOOGLE_DOCS_CREDENTIAL_ID",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        2112,
+        848
+      ],
+      "id": "83d0136a-b3c5-4b62-a7d8-871ba0cd7977",
+      "name": "When clicking â€˜Execute workflowâ€™"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseMode": "responseNodes"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        1856,
+        2176
+      ],
+      "id": "5b5a8eaf-1168-49a0-84ab-531903c7be8c",
+      "name": "When chat message received",
+      "webhookId": "REDACTED_WEBHOOK_ID_4"
+    },
+    {
+      "parameters": {
+        "message": "={{ $json.output.reply }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        2960,
+        2240
+      ],
+      "id": "84242bdb-9fbf-45dc-b2f9-c2bcbef89711",
+      "name": "Chat1",
+      "webhookId": "REDACTED_WEBHOOK_ID_5"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"reply\": \"Ji bilkul! 2 Chicken Biryani (Rs 900) aur 1 Mango Lassi (Rs 200). Subtotal Rs 1100, delivery Rs 150. Total Rs 1250. Address aur naam bhej dein?\",\n  \"status\": \"chatting\",\n  \"order\": {\n    \"customer_name\": \"Ali Raza\",\n    \"phone\": \"923001234567\",\n    \"address\": \"House 12, Street 4, DHA Phase 5, Karachi\",\n    \"items\": [\n      { \"name\": \"Chicken Biryani\", \"qty\": 2, \"unit_price\": 450, \"line_total\": 900 },\n      { \"name\": \"Mango Lassi\", \"qty\": 1, \"unit_price\": 200, \"line_total\": 200 }\n    ],\n    \"subtotal\": 1100,\n    \"delivery_fee\": 150,\n    \"total\": 1250,\n    \"payment_method\": \"Cash on Delivery\",\n    \"note\": \"2 x 450 = 900, 1 x 200 = 200, subtotal 1100, +150 delivery = 1250\"\n  }\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2656,
+        2528
+      ],
+      "id": "71a287c8-8bb9-4c7b-b0b8-1df6d33db1a5",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "message": "={{ $('AI Agent1').item.json.output.reply }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        3328,
+        1920
+      ],
+      "id": "a2085c85-b2f9-413d-9b03-351d2090191e",
+      "name": "Chat2",
+      "webhookId": "REDACTED_WEBHOOK_ID_5"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "menu_knowledge1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Order confirmed?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "menu_knowledge1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Order confirmed?1": {
+      "main": [
+        [
+          {
+            "node": "Save to Supabase1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send â€” Still Chatting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Supabase1": {
+      "main": [
+        [
+          {
+            "node": "Append to Sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append to Sheet1": {
+      "main": [
+        [
+          {
+            "node": "Send â€” Order Confirmed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a document": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking â€˜Execute workflowâ€™": {
+      "main": [
+        [
+          {
+            "node": "Get a document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        []
+      ]
+    },
+    "Send â€” Still Chatting": {
+      "main": [
+        []
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "3f92ff66-a4ce-4301-a7fd-17c3f56f310d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "REDACTED_INSTANCE_ID"
+  },
+  "id": "bkM6kjO10CNsfodh",
+  "tags": [
+    {
+      "updatedAt": "2026-08-19T17:32:07.457Z",
+      "createdAt": "2026-08-19T17:32:07.457Z",
+      "id": "8pmCtizmS6Bzkim1",
+      "name": "zaiqa-workshop"
+    }
+  ]
+}
